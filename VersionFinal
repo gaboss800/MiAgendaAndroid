@@ -1,0 +1,1514 @@
+// Método Principal
+package com.gab.myagenda;
+
+
+import androidx.appcompat.app.AppCompatActivity;
+
+import android.content.Intent;
+import android.os.Bundle;
+import android.view.View;
+
+public class MainActivity extends AppCompatActivity {
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+
+       // ConexionSQLiteHelper conn= new ConexionSQLiteHelper(this, "bd_contactos", null, 1);
+
+    }
+
+    public void onClick(View view){
+        Intent miIntent=null;
+        switch (view.getId()){
+            case R.id.btnAgregar:
+                miIntent = new Intent(MainActivity.this, RegistroContactosActivity.class);
+                startActivity(miIntent);
+                new RegistroContactosActivity();
+                break;
+
+            case R.id.btnMostrar:
+                miIntent = new Intent(MainActivity.this, MostrarContactos.class);
+                startActivity(miIntent);
+                new MostrarContactos();
+                break;
+
+
+            case R.id.btnModificar:
+                miIntent = new Intent(MainActivity.this, ModificarContacto.class);
+                startActivity(miIntent);
+                new ModificarContacto();
+                break;
+
+            case R.id.btnEliminar:
+                miIntent = new Intent(MainActivity.this, EliminarContacto.class);
+                startActivity(miIntent);
+                new EliminarContacto();
+                break;
+
+            case R.id.btnBuscar:
+                miIntent = new Intent(MainActivity.this, BuscarContacto.class);
+                startActivity(miIntent);
+                new BuscarContacto();
+                break;
+        }
+       
+    }
+}
+
+
+
+
+
+
+
+
+
+// Creación y manejo de base de datos en SQLite
+
+package com.gab.myagenda;
+
+import  android.content.Context;
+import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteOpenHelper;
+
+import androidx.annotation.Nullable;
+
+import com.gab.myagenda.utilidades.Utilidades;
+
+public class ConexionSQLiteHelper extends SQLiteOpenHelper {
+
+
+
+        public ConexionSQLiteHelper(@Nullable Context, @Nullable String name, @Nullable SQLiteDatabase.CursorFactory factory, int version) {
+        super(context, name, factory, version);
+    }
+
+    @Override
+    public void onCreate(SQLiteDatabase db) {
+            db.execSQL(Utilidades.CREAR_TABLA_USUARIO);
+
+    }
+
+    @Override
+    public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
+            db.execSQL("DROP TABLE IF EXISTS contactos");
+            onCreate(db);
+
+    }
+}
+
+
+
+
+// Creación de tabla Contactos
+
+package com.gab.myagenda.utilidades;
+
+public class Utilidades {
+
+    //Constantes campos tabla de contactos
+    public static final String TABLA_USUARIO = "contactos";
+    public static final String CAMPO_ID = "id";
+    public static final String CAMPO_NOMBRE = "nombre";
+    public static final String CAMPO_TELEFONO = "telefono";
+    public static final String CAMPO_CORREO = "correo";
+
+
+    public static final String CREAR_TABLA_USUARIO="CREATE TABLE "+TABLA_USUARIO+" ("+CAMPO_ID+" INTEGER,"+CAMPO_NOMBRE+" TEXT,"+CAMPO_TELEFONO+" TEXT, "+CAMPO_CORREO+" TEXT)";
+
+}
+
+
+
+
+// Elementos o campos de un Contacto
+
+package com.gab.myagenda.entidades;
+
+public class Contacto {
+
+    private Integer id;
+    private String nombre;
+    private String telefono;
+    private String correo;
+
+    public Contacto() {
+        this.id = id;
+        this.nombre = nombre;
+        this.telefono = telefono;
+        this.correo = correo;
+    }
+
+    public Integer getId() {
+        return id;
+    }
+
+    public void setId(Integer id) {
+        this.id = id;
+    }
+
+    public String getNombre() {
+        return nombre;
+    }
+
+    public void setNombre(String nombre) {
+        this.nombre = nombre;
+    }
+
+    public String getTelefono() {
+        return telefono;
+    }
+
+    public void setTelefono(String telefono) {
+        this.telefono = telefono;
+    }
+
+    public String getCorreo() {
+        return correo;
+    }
+
+    public void setCorreo(String correo) {
+        this.correo = correo;
+    }
+}
+
+
+
+
+// Agregar un Contacto
+
+package com.gab.myagenda;
+
+import androidx.appcompat.app.AppCompatActivity;
+
+import android.content.ContentValues;
+import android.content.Intent;
+import android.database.sqlite.SQLiteDatabase;
+import android.os.Bundle;
+import android.view.View;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.Toast;
+
+import com.gab.myagenda.utilidades.Utilidades;
+
+public class RegistroContactosActivity extends AppCompatActivity {
+
+    EditText campoId, campoNombre, campoTelefono, campoCorreo;
+    Button btnAgregarContacto;
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_registro_usuarios);
+
+        campoId = (EditText) findViewById(R.id.edtID);
+        campoNombre = (EditText) findViewById(R.id.edtNombre);
+        campoTelefono = (EditText) findViewById(R.id.edtTelefono);
+        campoCorreo = (EditText) findViewById(R.id.edtCorreo);
+
+    }
+
+    public void onClick(View view) {
+        //Intent miIntent=null;
+        switch (view.getId()){
+            case R.id.btnCRUDContacto:
+                registrarUsuarios();
+                break;
+
+            case R.id.btnInicio:
+                finish();
+                break;
+
+
+        }
+
+       
+    }
+
+    
+        private void registrarUsuarios() {
+            ConexionSQLiteHelper conn = new ConexionSQLiteHelper(this, "bd_contactos", null, 1);
+
+            SQLiteDatabase db = conn.getWritableDatabase();
+
+            if (!campoId.getText().toString().isEmpty() && !campoNombre.getText().toString().isEmpty() && !campoTelefono.getText().toString().isEmpty()) {
+                ContentValues registro = new ContentValues();
+
+
+                ContentValues values = new ContentValues();
+                values.put(Utilidades.CAMPO_ID, campoId.getText().toString());
+                values.put(Utilidades.CAMPO_NOMBRE, campoNombre.getText().toString());
+                values.put(Utilidades.CAMPO_TELEFONO, campoTelefono.getText().toString());
+                values.put(Utilidades.CAMPO_CORREO, campoCorreo.getText().toString());
+
+
+                Long idResultante = db.insert(Utilidades.TABLA_USUARIO, Utilidades.CAMPO_ID, values);
+
+
+                Toast.makeText(getApplicationContext(), " Contacto Agregado Exitosamente     Id Registro: " + idResultante, Toast.LENGTH_LONG).show();
+                limpiar();
+                db.close();
+
+            }else {
+                Toast.makeText(RegistroContactosActivity.this, "Debe llenar los Campos Obligatorios", Toast.LENGTH_LONG).show();
+            }
+        }
+
+
+    private void limpiar(){
+        campoId.setText("");
+        campoNombre.setText("");
+        campoTelefono.setText("");
+        campoCorreo.setText("");
+    }
+
+
+
+}
+
+// Mostrar Lista de Contactos
+
+package com.gab.myagenda;
+
+import androidx.appcompat.app.AppCompatActivity;
+
+import android.content.Context;
+import android.content.Intent;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
+import android.os.Bundle;
+import android.view.View;
+import android.widget.ArrayAdapter;
+import android.widget.ListView;
+
+import com.gab.myagenda.entidades.Contacto;
+import com.gab.myagenda.utilidades.Utilidades;
+
+import java.util.ArrayList;
+
+import static android.database.Cursor.*;
+
+    public class MostrarContactos extends AppCompatActivity {
+
+    ListView listviewContactos;
+    ArrayList<String> listainformacion;
+    ArrayList<Contacto> listaContactos;
+
+    ConexionSQLiteHelper conn;
+
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_mostrar_contactos);
+
+        conn= new ConexionSQLiteHelper(getApplicationContext(), "bd_contactos", null,1);
+
+        listviewContactos = (ListView) findViewById(R.id.listviewContactos);
+
+        consultarListaContactos();
+
+        ArrayAdapter adaptador= new ArrayAdapter(this, android.R.layout.simple_expandable_list_item_1,listainformacion);
+        listviewContactos.setAdapter(adaptador);
+
+
+
+    }
+    private void consultarListaContactos(){
+        SQLiteDatabase db = conn.getWritableDatabase();
+
+        Contacto = null;
+        listaContactos = new ArrayList<Contacto>();
+
+        Cursor cursor= db.rawQuery("SELECT * FROM "+ Utilidades.TABLA_USUARIO, null);
+
+        while (cursor.moveToNext()){
+            contacto= new Contacto();
+            contacto.setId(cursor.getInt(0));
+            contacto.setNombre(cursor.getString(1));
+            contacto.setTelefono(cursor.getString(2));
+            contacto.setCorreo(cursor.getString(3));
+
+            listaContactos.add(contacto);
+
+
+
+        }
+        obtenerLista();
+
+       
+        }
+
+
+    private void obtenerLista() {
+        listainformacion = new ArrayList<>();
+        for (int i=0; i<listaContactos.size(); i++){
+            listainformacion.add(listaContactos.get(i).getId()+"-"+listaContactos.get(i).getNombre()
+            +"\n"+listaContactos.get(i).getTelefono()+"\n"+listaContactos.get(i).getCorreo());
+
+
+        }
+
+
+    }
+
+        public void onClick(View view) {
+        finish();
+        }
+    }
+
+
+
+// Modificar Contacto
+
+package com.gab.myagenda;
+
+import androidx.appcompat.app.AlertDialog;
+import androidx.appcompat.app.AppCompatActivity;
+
+import android.content.ContentValues;
+import android.content.DialogInterface;
+import android.content.Intent;
+import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteOpenHelper;
+import android.os.Bundle;
+import android.view.View;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.Toast;
+
+import com.gab.myagenda.utilidades.Utilidades;
+
+public class ModificarContacto extends AppCompatActivity {
+
+    EditText campoId, campoNombre, campoTelefono, campoCorreo;
+    ConexionSQLiteHelper conn;
+    Button btnGuardarCambios;
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_modificar_contacto);
+
+        conn = new ConexionSQLiteHelper(getApplicationContext(), "bd_contactos", null, 1);
+
+        campoId = (EditText) findViewById(R.id.edtID);
+        campoNombre = (EditText) findViewById(R.id.edtNombre);
+        campoTelefono = (EditText) findViewById(R.id.edtTelefono);
+        campoCorreo = (EditText) findViewById(R.id.edtCorreo);
+        btnGuardarCambios = findViewById(R.id.btnGuardarCambios);
+
+        btnGuardarCambios.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                AlertDialog.Builder builder = new AlertDialog.Builder(ModificarContacto.this);
+                builder.setMessage("¿Desea Modificar este Contacto?").setPositiveButton("Si", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        ModificarContacto();
+
+                    }
+                })
+                        .setNegativeButton("No", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+
+                            }
+                        }).show();
+            }
+        });
+
+    }
+
+
+        public void onClick(View view) {
+            //Intent miIntent=null;
+            switch (view.getId()){
+                case R.id.btnGuardarCambios:
+                    ModificarContacto();
+                    break;
+
+                case R.id.btnInicio:
+                    finish();
+                    break;
+
+
+            }
+    }
+       private void ModificarContacto(){
+
+           SQLiteDatabase db = conn.getWritableDatabase();
+           String[] parametros = {campoId.getText().toString()};
+
+           if (!campoId.getText().toString().isEmpty() && !campoNombre.getText().toString().isEmpty() && !campoTelefono.getText().toString().isEmpty() ) {
+
+           ContentValues values = new ContentValues();
+           values.put(Utilidades.CAMPO_NOMBRE, campoNombre.getText().toString());
+           values.put(Utilidades.CAMPO_TELEFONO, campoTelefono.getText().toString());
+           values.put(Utilidades.CAMPO_CORREO, campoCorreo.getText().toString());
+
+           db.update(Utilidades.TABLA_USUARIO, values, Utilidades.CAMPO_ID+"=?",parametros);
+
+           Toast.makeText(getApplicationContext(), "Contacto Actualizado Exitosamente", Toast.LENGTH_LONG).show();
+           limpiar();
+           db.close();
+
+           }else {
+               Toast.makeText(ModificarContacto.this, "Debe llenar todos los datos del usuario que desee Modificar", Toast.LENGTH_LONG).show();
+           }
+
+
+        }
+    private void limpiar(){
+        campoId.setText("");
+        campoNombre.setText("");
+        campoTelefono.setText("");
+        campoCorreo.setText("");
+    }
+
+}
+
+
+
+// Buscar Contacto
+
+package com.gab.myagenda;
+
+import androidx.appcompat.app.AppCompatActivity;
+
+import android.content.ContentValues;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
+import android.os.Bundle;
+import android.view.View;
+import android.widget.EditText;
+import android.widget.Toast;
+
+import com.gab.myagenda.utilidades.Utilidades;
+
+public class BuscarContacto extends AppCompatActivity {
+
+    EditText campoId, campoNombre, campoTelefono, campoCorreo;
+    ConexionSQLiteHelper conn;
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_buscar_contacto);
+
+        conn = new ConexionSQLiteHelper(getApplicationContext(), "bd_contactos", null, 1);
+
+        campoId = (EditText) findViewById(R.id.edtID);
+        campoNombre = (EditText) findViewById(R.id.edtNombre);
+        campoTelefono = (EditText) findViewById(R.id.edtTelefono);
+        campoCorreo = (EditText) findViewById(R.id.edtCorreo);
+
+    }
+
+    public void onClick(View view) {
+        //Intent miIntent=null;
+        switch (view.getId()) {
+            case R.id.btnBuscar:
+                BuscarContacto();
+                break;
+
+            case R.id.btnInicio:
+                finish();
+                break;
+        }
+    }
+
+    private void BuscarContacto() {
+        SQLiteDatabase db = conn.getReadableDatabase();
+        String[] parametros = {campoId.getText().toString()};
+        String[] campos = {Utilidades.CAMPO_NOMBRE, Utilidades.CAMPO_TELEFONO, Utilidades.CAMPO_CORREO};
+
+        try {
+            Cursor = db.query(Utilidades.TABLA_USUARIO, campos, Utilidades.CAMPO_ID + "=?", parametros, null, null, null);
+            cursor.moveToFirst();
+            campoNombre.setText(cursor.getString(0));
+            campoTelefono.setText(cursor.getString(1));
+            campoCorreo.setText(cursor.getString(2));
+            cursor.close();
+            Toast.makeText(getApplicationContext(), "Contacto Encontrado", Toast.LENGTH_LONG).show();
+        } catch (Exception e) {
+            Toast.makeText(getApplicationContext(), "El Contacto No Existe", Toast.LENGTH_LONG).show();
+            limpiar();
+
+
+            ContentValues values = new ContentValues();
+            values.put(Utilidades.CAMPO_NOMBRE, campoNombre.getText().toString());
+            values.put(Utilidades.CAMPO_TELEFONO, campoTelefono.getText().toString());
+            values.put(Utilidades.CAMPO_CORREO, campoCorreo.getText().toString());
+
+        }
+    }
+
+    private void limpiar() {
+        campoId.setText("");
+        campoNombre.setText("");
+        campoTelefono.setText("");
+        campoCorreo.setText("");
+    }
+ }
+
+
+
+
+// Eliminar Contacto
+
+package com.gab.myagenda;
+
+import androidx.appcompat.app.AlertDialog;
+import androidx.appcompat.app.AppCompatActivity;
+
+import android.content.ContentValues;
+import android.content.DialogInterface;
+import android.content.Intent;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteOpenHelper;
+import android.os.Bundle;
+import android.view.View;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.Toast;
+
+import com.gab.myagenda.utilidades.Utilidades;
+
+import java.util.Arrays;
+
+public class EliminarContacto extends AppCompatActivity {
+
+    EditText campoId, campoNombre, campoTelefono, campoCorreo;
+    ConexionSQLiteHelper conn;
+    Button btnEliminar;
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_eliminar_contacto);
+
+        conn = new ConexionSQLiteHelper(getApplicationContext(), "bd_contactos", null, 1);
+
+        campoId = (EditText) findViewById(R.id.edtID);
+        campoNombre = (EditText) findViewById(R.id.edtNombre);
+        campoTelefono = (EditText) findViewById(R.id.edtTelefono);
+        campoCorreo = (EditText) findViewById(R.id.edtCorreo);
+        btnEliminar = findViewById(R.id.btnEliminar);
+
+        btnEliminar.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                AlertDialog.Builder builder = new AlertDialog.Builder(EliminarContacto.this);
+                builder.setMessage("¿Desea Eliminar este Contacto?").setPositiveButton("Si", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        EliminaContacto();
+
+                    }
+                })
+                        .setNegativeButton("No", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+
+                            }
+                        }).show();
+            }
+        });
+
+    }
+
+    public void onClick(View view) {
+        Intent miIntent=null;
+        switch (view.getId()){
+            case R.id.btnEliminar:
+                EliminaContacto();
+                break;
+
+            case R.id.btnInicio:
+                finish();
+                break;
+
+
+        }
+}
+
+    private void EliminaContacto() {
+
+        SQLiteDatabase db = conn.getWritableDatabase();
+        String[] parametros = {campoId.getText().toString()};
+        String[] campos = {Utilidades.CAMPO_NOMBRE, Utilidades.CAMPO_TELEFONO, Utilidades.CAMPO_CORREO};
+
+
+        try {
+            Cursor = db.query(Utilidades.TABLA_USUARIO, campos, Utilidades.CAMPO_ID + "=?", parametros, null, null, null);
+            cursor.moveToFirst();
+            campoNombre.setText(cursor.getString(0));
+            campoTelefono.setText(cursor.getString(1));
+            campoCorreo.setText(cursor.getString(2));
+            cursor.close();
+            
+
+            db.delete(Utilidades.TABLA_USUARIO, Utilidades.CAMPO_ID + "=?", parametros);
+
+            Toast.makeText(getApplicationContext(), "Contacto Eliminado Exitosamente", Toast.LENGTH_LONG).show();
+            limpiar();
+            db.close();
+
+        } catch (Exception e) {
+            Toast.makeText(getApplicationContext(), "El Contacto No Existe", Toast.LENGTH_SHORT).show();
+            Toast.makeText(EliminarContacto.this, "Debe poner un Id de contacto valido que desee eliminar", Toast.LENGTH_LONG).show();
+
+        }
+
+
+    }
+    private void limpiar(){
+        campoId.setText("");
+        campoNombre.setText("");
+        campoTelefono.setText("");
+        campoCorreo.setText("");
+    }
+}
+
+Código del archivo Android Manifest de la aplicación:
+
+// Android Manifest
+
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.gab.myagenda"
+    android:versionCode="1"
+    android:versionName="1.0"
+    >
+
+    <application
+        android:allowBackup="true"
+        android:icon="@mipmap/ic_index"
+        android:label="@string/app_name"
+        android:roundIcon="@mipmap/ic_index"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.MyAgenda">
+        <activity android:name=".BuscarContacto"></activity>
+        <activity android:name=".EliminarContacto" />
+        <activity android:name=".ModificarContacto" />
+        <activity android:name=".MostrarContactos" />
+        <activity android:name=".RegistroContactosActivity" />
+        <activity android:name=".MainActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+    </application>
+
+</manifest>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Código fuente de los layouts de la interfaz gráfica
+
+
+// Pantalla Principal
+
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#03A9F4"
+    tools:context=".MainActivity">
+
+    <TextView
+        android:id="@+id/textView"
+        android:layout_width="208dp"
+        android:layout_height="56dp"
+        android:gravity="center"
+        android:text="@string/textView"
+        android:textColor="#292727"
+        android:textSize="34sp"
+        android:textStyle="bold"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.497"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.023" />
+
+    <Button
+        android:id="@+id/btnAgregar"
+        android:layout_width="117dp"
+        android:layout_height="51dp"
+        android:onClick="onClick"
+        android:text="@string/btnAgregar"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.227"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.382" />
+
+    <Button
+        android:id="@+id/btnModificar"
+        android:layout_width="120dp"
+        android:layout_height="52dp"
+        android:onClick="onClick"
+        android:text="@string/btnModificar"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.81"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.381" />
+
+    <Button
+        android:id="@+id/btnBuscar"
+        android:layout_width="117dp"
+        android:layout_height="49dp"
+        android:onClick="onClick"
+        android:text="@string/btnBuscar"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.227"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.617" />
+
+    <Button
+        android:id="@+id/btnEliminar"
+        android:layout_width="119dp"
+        android:layout_height="52dp"
+        android:onClick="onClick"
+        android:text="@string/btnEliminarr"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.811"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.614" />
+
+    <Button
+        android:id="@+id/btnMostrar"
+        android:layout_width="126dp"
+        android:layout_height="50dp"
+        android:onClick="onClick"
+        android:text="@string/btnMostrar"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.498"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.807" />
+
+    <ImageView
+        android:id="@+id/imageView"
+        android:layout_width="114dp"
+        android:layout_height="111dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.128"
+        app:srcCompat="@drawable/agenda_time_date_customer_notebooks_128" />
+
+    <ImageView
+        android:id="@+id/imageView2"
+        android:layout_width="58dp"
+        android:layout_height="56dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.283"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.293"
+        app:srcCompat="@drawable/iconfinder_user_plus_2561494" />
+
+    <ImageView
+        android:id="@+id/imageView3"
+        android:layout_width="69dp"
+        android:layout_height="55dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.753"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.296"
+        app:srcCompat="@drawable/iconfinder_user_profile_edit_103781" />
+
+    <ImageView
+        android:id="@+id/imageView4"
+        android:layout_width="89dp"
+        android:layout_height="69dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.248"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.525"
+        app:srcCompat="@drawable/iconfinder_65_employee_hr_human_hunting_personal_resources_resume_search_4308328" />
+
+    <ImageView
+        android:id="@+id/imageView5"
+        android:layout_width="65dp"
+        android:layout_height="58dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.774"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.517"
+        app:srcCompat="@drawable/iconfinder_icon_user_minus_2867952" />
+
+    <ImageView
+        android:id="@+id/imageView6"
+        android:layout_width="46dp"
+        android:layout_height="50dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.731"
+        app:srcCompat="@drawable/contactos" />
+</androidx.constraintlayout.widget.ConstraintLayout>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// Pantalla de Agregar Contactos
+
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#03A9F4"
+    tools:context=".RegistroContactosActivity">
+
+    <TextView
+        android:id="@+id/textView2"
+        android:layout_width="233dp"
+        android:layout_height="57dp"
+        android:gravity="center"
+        android:text="@string/textView2"
+        android:textColor="#333131"
+        android:textSize="24sp"
+        android:textStyle="bold"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.438"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.023" />
+
+    <EditText
+        android:id="@+id/edtID"
+        android:layout_width="357dp"
+        android:layout_height="48dp"
+        android:ems="10"
+        android:hint="@string/edtID"
+        android:inputType="textPersonName"
+        android:textColor="#0C0C0C"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.351"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.133" />
+
+    <EditText
+        android:id="@+id/edtNombre"
+        android:layout_width="367dp"
+        android:layout_height="48dp"
+        android:ems="10"
+        android:hint="Nombre:"
+        android:inputType="textPersonName"
+        android:textColor="#0E0E0E"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.431"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.228" />
+
+    <EditText
+        android:id="@+id/edtTelefono"
+        android:layout_width="365dp"
+        android:layout_height="44dp"
+        android:ems="10"
+        android:hint="@string/edtTelefono"
+        android:inputType="phone"
+        android:textColor="#101010"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.395"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.314" />
+
+    <EditText
+        android:id="@+id/edtCorreo"
+        android:layout_width="368dp"
+        android:layout_height="43dp"
+        android:ems="10"
+        android:hint="@string/edtCorreo"
+        android:inputType="textEmailAddress"
+        android:textColor="#0C0C0C"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.372"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.404" />
+
+    <Button
+        android:id="@+id/btnCRUDContacto"
+        android:layout_width="218dp"
+        android:layout_height="60dp"
+        android:onClick="onClick"
+        android:text="@string/btnRegistrar"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.472"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <Button
+        android:id="@+id/btnInicio"
+        android:layout_width="104dp"
+        android:layout_height="47dp"
+        android:onClick="onClick"
+        android:text="Inicio"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.469"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.627"
+        tools:ignore="OnClick" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// Pantalla de Mostrar Contactos
+
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#03A9F4"
+    tools:context="com.gab.myagenda.MostrarContactos">
+
+
+    <ListView
+        android:id="@+id/listviewContactos"
+        android:layout_width="347dp"
+        android:layout_height="wrap_content"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentBottom="true"
+        android:layout_marginStart="28dp"
+        android:layout_marginLeft="28dp"
+        android:layout_marginTop="64dp"
+        android:layout_marginEnd="36dp"
+        android:layout_marginRight="36dp"
+        android:layout_marginBottom="142dp" />
+
+    <TextView
+        android:id="@+id/textView3"
+        android:layout_width="170dp"
+        android:layout_height="48dp"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentBottom="true"
+        android:layout_marginStart="108dp"
+        android:layout_marginLeft="108dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginEnd="133dp"
+        android:layout_marginRight="133dp"
+        android:layout_marginBottom="675dp"
+        android:gravity="center"
+        android:text="Contactos"
+        android:textColor="#232020"
+        android:textSize="24sp"
+        android:textStyle="bold" />
+
+    <Button
+        android:id="@+id/btnInicioMostrar"
+        android:layout_width="wrap_content"
+        android:layout_height="63dp"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentBottom="true"
+        android:layout_marginStart="141dp"
+        android:layout_marginLeft="141dp"
+        android:layout_marginTop="597dp"
+        android:layout_marginEnd="140dp"
+        android:layout_marginRight="140dp"
+        android:layout_marginBottom="71dp"
+        android:text="Inicio"
+        android:onClick="onClick"/>
+</RelativeLayout>
+// Pantalla de Modificar Contacto
+
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#03A9F4"
+    tools:context=".ModificarContacto">
+
+    <TextView
+        android:id="@+id/textView2"
+        android:layout_width="233dp"
+        android:layout_height="57dp"
+        android:gravity="center"
+        android:text="Modificar Contacto"
+        android:textColor="#333131"
+        android:textSize="24sp"
+        android:textStyle="bold"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.438"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.023" />
+
+    <EditText
+        android:id="@+id/edtID"
+        android:layout_width="357dp"
+        android:layout_height="48dp"
+        android:ems="10"
+        android:hint="@string/edtID"
+        android:inputType="textPersonName"
+        android:textColor="#100F0F"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.351"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.133" />
+
+    <EditText
+        android:id="@+id/edtNombre"
+        android:layout_width="367dp"
+        android:layout_height="48dp"
+        android:ems="10"
+        android:hint="Nombre:"
+        android:inputType="textPersonName"
+        android:textColor="#0C0B0B"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.431"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.228" />
+
+    <EditText
+        android:id="@+id/edtTelefono"
+        android:layout_width="365dp"
+        android:layout_height="44dp"
+        android:ems="10"
+        android:hint="@string/edtTelefono"
+        android:inputType="phone"
+        android:textColor="#121111"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.395"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.314" />
+
+    <EditText
+        android:id="@+id/edtCorreo"
+        android:layout_width="368dp"
+        android:layout_height="43dp"
+        android:ems="10"
+        android:hint="@string/edtCorreo"
+        android:inputType="textEmailAddress"
+        android:textColor="#0B0A0A"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.372"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.404" />
+
+    <Button
+        android:id="@+id/btnGuardarCambios"
+        android:layout_width="218dp"
+        android:layout_height="60dp"
+        android:onClick="onClick"
+        android:text="Guardar Cambios"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.472"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:ignore="OnClick" />
+
+    <Button
+        android:id="@+id/btnInicio"
+        android:layout_width="104dp"
+        android:layout_height="47dp"
+        android:onClick="onClick"
+        android:text="Inicio"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.469"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.627"
+        tools:ignore="OnClick" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// Pantalla de Buscar Contacto
+
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#03A9F4"
+    tools:context=".BuscarContacto">
+
+
+    <TextView
+        android:id="@+id/textView2"
+        android:layout_width="233dp"
+        android:layout_height="57dp"
+        android:gravity="center"
+        android:text="Buscar Contacto"
+        android:textColor="#333131"
+        android:textSize="24sp"
+        android:textStyle="bold"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.438"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.023" />
+
+    <EditText
+        android:id="@+id/edtID"
+        android:layout_width="357dp"
+        android:layout_height="48dp"
+        android:ems="10"
+        android:hint="@string/edtID"
+        android:inputType="textPersonName"
+        android:textColor="#121111"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.351"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.133" />
+
+    <EditText
+        android:id="@+id/edtNombre"
+        android:layout_width="367dp"
+        android:layout_height="48dp"
+        android:ems="10"
+        android:hint="Nombre:"
+        android:inputType="textPersonName"
+        android:textColor="#121111"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.431"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.228" />
+
+    <EditText
+        android:id="@+id/edtTelefono"
+        android:layout_width="365dp"
+        android:layout_height="44dp"
+        android:ems="10"
+        android:hint="@string/edtTelefono"
+        android:inputType="phone"
+        android:textColor="#1B1A1A"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.395"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.314" />
+
+    <EditText
+        android:id="@+id/edtCorreo"
+        android:layout_width="368dp"
+        android:layout_height="43dp"
+        android:ems="10"
+        android:hint="@string/edtCorreo"
+        android:inputType="textEmailAddress"
+        android:textColor="#121111"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.372"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.404" />
+
+    <Button
+        android:id="@+id/btnBuscar"
+        android:layout_width="218dp"
+        android:layout_height="60dp"
+        android:onClick="onClick"
+        android:text="Buscar Contacto"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.472"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:ignore="OnClick" />
+
+    <Button
+        android:id="@+id/btnInicio"
+        android:layout_width="104dp"
+        android:layout_height="47dp"
+        android:onClick="onClick"
+        android:text="Inicio"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.469"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.627"
+        tools:ignore="OnClick" />
+
+
+</androidx.constraintlayout.widget.ConstraintLayout>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// Pantalla de Eliminar Contacto
+
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#03A9F4"
+    tools:context=".EliminarContacto">
+
+
+    <TextView
+        android:id="@+id/textView2"
+        android:layout_width="233dp"
+        android:layout_height="57dp"
+        android:gravity="center"
+        android:text="Eliminar Contacto"
+        android:textColor="#333131"
+        android:textSize="24sp"
+        android:textStyle="bold"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.438"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.023" />
+
+    <EditText
+        android:id="@+id/edtID"
+        android:layout_width="357dp"
+        android:layout_height="48dp"
+        android:ems="10"
+        android:hint="@string/edtID"
+        android:inputType="textPersonName"
+        android:textColor="#100F0F"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.351"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.133" />
+
+    <EditText
+        android:id="@+id/edtNombre"
+        android:layout_width="367dp"
+        android:layout_height="48dp"
+        android:ems="10"
+        android:hint="Nombre:"
+        android:inputType="textPersonName"
+        android:textColor="#0C0C0C"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.431"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.228" />
+
+    <EditText
+        android:id="@+id/edtTelefono"
+        android:layout_width="365dp"
+        android:layout_height="44dp"
+        android:ems="10"
+        android:hint="@string/edtTelefono"
+        android:inputType="phone"
+        android:textColor="#121111"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.395"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.314" />
+
+    <EditText
+        android:id="@+id/edtCorreo"
+        android:layout_width="368dp"
+        android:layout_height="43dp"
+        android:ems="10"
+        android:hint="@string/edtCorreo"
+        android:inputType="textEmailAddress"
+        android:textColor="#0E0E0E"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.372"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.404" />
+
+    <Button
+        android:id="@+id/btnEliminar"
+        android:layout_width="218dp"
+        android:layout_height="60dp"
+        android:onClick="onClick"
+        android:text="Eliminar Contacto"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.472"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:ignore="OnClick" />
+
+    <Button
+        android:id="@+id/btnInicio"
+        android:layout_width="104dp"
+        android:layout_height="47dp"
+        android:onClick="onClick"
+        android:text="Inicio"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.469"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.627"
+        tools:ignore="OnClick" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>
